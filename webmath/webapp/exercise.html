@@ -1,0 +1,90 @@
+<html>
+<head>
+<title>Mathe-Training</title>
+<style type="text/css">
+div.exercises {
+	display: table;
+	margin-top: 10px;
+	margin-bottom: 10px;
+}
+
+div.row {
+	display: table-row;
+}
+
+div.aufgabe {
+	display: table-cell;
+	white-space: nowrap;
+	
+	padding-top: 4px; 
+	padding-bottom: 4px;
+	padding-left: 2ex; 
+	padding-right: 2ex;
+}
+
+input.eingabe {
+	border-color: black;
+	border-style: solid;
+	border-width: 1px;
+	width: 6ex;
+	padding-top: 2px;
+	padding-bottom: 2px;
+	margin-left: 5px;
+	margin-right: 5px;
+}
+
+div.passed input.eingabe, div.failed input.eingabe {
+	border-style: none;
+}
+
+span.result {
+	margin-left: 5px;
+}
+
+span.passed, span.failed {
+	visibility: hidden;
+}
+
+div.passed span.result {
+	color: green;
+}
+
+div.passed span.passed {
+	visibility: visible;
+}
+
+div.failed span.result {
+	color: red;
+}
+
+div.failed span.failed {
+	visibility: visible;
+}
+
+#timing {
+	visibility: hidden;
+}
+
+</style>
+
+<script type="text/javascript" src="exercise.js"></script>
+
+</head>
+<body>
+
+<script type="text/javascript">
+printExercises();
+</script>
+
+<div>
+Du hast <span id="doneCnt">0</span> Aufgaben bearbeitet. 
+Von Deinen Antworten waren <span id="passedCnt"></span> richtig und <span id="failedCnt"></span> falsch.
+<span id="timing">Du hast <span id="elapsedMinutes"></span> Minuten und <span id="elapsedSeconds"></span> Sekunden zur Lösung benötigt.</span>
+</div>
+
+</body>
+
+<script type="text/javascript">
+initExercises();
+</script>
+</html>
