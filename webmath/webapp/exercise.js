@@ -1,52 +1,139 @@
-exerciseCount = 20;
 columnCount = 3;
 
-exerciseTypes = [
-	Addition, 
-	Substraction, 
-	Multiplication,
-	Division,
-	RestDivision
+settings = [
+	{
+		name: "1. Klasse",
+		
+		exerciseCount: 20,
+	
+		exerciseTypes: [
+			 Addition, 
+			 Substraction
+		],
+		
+		additionConfig: {
+			probability: 1,
+			inverseProbability: 0,
+			carryProbability: 0.2,
+			maxBase: 20,
+			maxOperand: 10,
+			minOperand: 1,
+			maxResult: 20
+		},
+	
+		substractionConfig: {
+			probability: 0.5,
+			carryProbability: 0.2,
+			maxBase: 20,
+			maxOperand: 10,
+			minOperand: 1,
+			minResult: 1
+		}
+	},
+
+	{
+		name: "3. Klasse",
+		
+		exerciseCount: 60,
+		
+		exerciseTypes: [
+			 Addition, 
+			 Substraction, 
+			 Multiplication,
+			 Division,
+			 RestDivision
+		],
+		
+		additionConfig: {
+			probability: 1,
+			inverseProbability: 0,
+			carryProbability: 0.9,
+			maxBase: 100,
+			maxOperand: 100,
+			minOperand: 11,
+			maxResult: 100
+		},
+	
+		substractionConfig: {
+			probability: 1,
+			carryProbability: 0.9,
+			maxBase: 100,
+			maxOperand: 100,
+			minOperand: 11,
+			minResult: 11
+		},
+		
+		multiplicationConfig: {
+			probability: 1,
+			inverseProbability: 0,
+			minOperand: 2,
+			maxOperand: 10
+		},
+		
+		divisionConfig: {
+			probability: 0.2,
+			maxOperand: 10,
+			maxResult: 10
+		},
+		
+		restDivisionConfig: {
+			probability: 1.8,
+			maxOperand: 10,
+			maxResult: 10
+		}
+	}
 ];
 
-maxNumner = 20;
-maxOperand = 10;
-minOperand = 1;
-
-additionConfig = {
-	probability: 1,
-	inverseProbability: 0,
-	maxBase: maxNumner,
-	maxOperand: maxOperand,
-	minOperand: minOperand,
-	maxResult: maxNumner
+// From https://developer.mozilla.org/en-US/docs/Web/API/Document/cookie
+var docCookies = {
+	getItem: function (sKey) {
+		if (!sKey) { return null; }
+		return decodeURIComponent(document.cookie.replace(new RegExp("(?:(?:^|.*;)\\s*" + encodeURIComponent(sKey).replace(/[\-\.\+\*]/g, "\\$&") + "\\s*\\=\\s*([^;]*).*$)|^.*$"), "$1")) || null;
+	},
+	setItem: function (sKey, sValue, vEnd, sPath, sDomain, bSecure) {
+		if (!sKey || /^(?:expires|max\-age|path|domain|secure)$/i.test(sKey)) { return false; }
+		var sExpires = "";
+		if (vEnd) {
+			switch (vEnd.constructor) {
+				case Number:
+					sExpires = vEnd === Infinity ? "; expires=Fri, 31 Dec 9999 23:59:59 GMT" : "; max-age=" + vEnd;
+					break;
+				case String:
+					sExpires = "; expires=" + vEnd;
+					break;
+				case Date:
+					sExpires = "; expires=" + vEnd.toUTCString();
+					break;
+			}
+		}
+		document.cookie = encodeURIComponent(sKey) + "=" + encodeURIComponent(sValue) + sExpires + (sDomain ? "; domain=" + sDomain : "") + (sPath ? "; path=" + sPath : "") + (bSecure ? "; secure" : "");
+		return true;
+	},
+	removeItem: function (sKey, sPath, sDomain) {
+		if (!this.hasItem(sKey)) { return false; }
+		document.cookie = encodeURIComponent(sKey) + "=; expires=Thu, 01 Jan 1970 00:00:00 GMT" + (sDomain ? "; domain=" + sDomain : "") + (sPath ? "; path=" + sPath : "");
+		return true;
+	},
+	hasItem: function (sKey) {
+		if (!sKey) { return false; }
+		return (new RegExp("(?:^|;\\s*)" + encodeURIComponent(sKey).replace(/[\-\.\+\*]/g, "\\$&") + "\\s*\\=")).test(document.cookie);
+	},
+	keys: function () {
+		var aKeys = document.cookie.replace(/((?:^|\s*;)[^\=]+)(?=;|$)|^\s*|\s*(?:\=[^;]*)?(?:\1|$)/g, "").split(/\s*(?:\=[^;]*)?;\s*/);
+		for (var nLen = aKeys.length, nIdx = 0; nIdx < nLen; nIdx++) { aKeys[nIdx] = decodeURIComponent(aKeys[nIdx]); }
+		return aKeys;
+	}
 };
 
-substractionConfig = {
-	probability: 1,
-	maxBase: maxNumner,
-	maxOperand: maxOperand,
-	minOperand: minOperand
-};
+function getConfigId() {
+	var configId = docCookies.getItem("config");
+	if (configId == null) {
+		configId = 0;
+	}
+	return configId;
+}
 
-multiplicationConfig = {
-	probability: 0,
-	inverseProbability: 0,
-	minOperand: 2,
-	maxOperand: 10
-};
-
-divisionConfig = {
-	probability: 0,
-	maxOperand: 10,
-	maxResult: 10
-};
-
-restDivisionConfig = {
-	probability: 0,
-	maxOperand: 10,
-	maxResult: 10
-};
+config = settings[getConfigId()];
 
 function extend(sub, base) {
 	var origProto = sub.prototype;
@@ -62,7 +149,15 @@ function extend(sub, base) {
 }
 
 function randomInt(limit) {
-	return Math.floor((Math.random() * limit)) | 0
+	return toInt((Math.random() * limit));
+}
+
+function randomIntRange(min, max) {
+	return min + randomInt(max - min + 1);
+}
+
+function toInt(value) {
+	return Math.floor(value) | 0
 }
 
 function randomBoolean(trueProbability) {
@@ -75,6 +170,8 @@ function newId() {
 }
 
 function makeExercise() {
+	var exerciseTypes = config.exerciseTypes;
+	
 	var exercise;
 	do {
 		var sumProbability = 0.0;
@@ -268,13 +365,13 @@ function Multiplication() {
 
 	this.operator = "&#x00b7;";
 
-	var inverse = randomBoolean(multiplicationConfig.inverseProbability);
+	var inverse = randomBoolean(this.config.inverseProbability);
 	if (inverse) {
 		this.input = randomInt(2);
 	}
 	
-	this.left = randomInt(multiplicationConfig.maxOperand + 1);
-	this.right = randomInt(multiplicationConfig.maxOperand + 1);
+	this.left = randomInt(this.config.maxOperand + 1);
+	this.right = randomInt(this.config.maxOperand + 1);
 	this.result = this.left * this.right;
 	
 	this.addInput(this.result);
@@ -283,7 +380,7 @@ function Multiplication() {
 }
 
 Multiplication.prototype = {
-	config: multiplicationConfig,
+	config: config.multiplicationConfig,
 	
 	createExercise: function() {
 		return new Multiplication();
@@ -295,11 +392,11 @@ Multiplication.prototype = {
 			return false;
 		}
 		
-		if (this.left < multiplicationConfig.minOperand) {
+		if (this.left < this.config.minOperand) {
 			return false
 		}
 
-		if (this.right < multiplicationConfig.minOperand) {
+		if (this.right < this.config.minOperand) {
 			return false
 		}
 		
@@ -318,8 +415,8 @@ function Division() {
 	
 	this.operator = ":";
 	
-	this.right = randomInt(divisionConfig.maxOperand + 1);
-	this.result = randomInt(divisionConfig.maxResult + 1);
+	this.right = randomInt(this.config.maxOperand + 1);
+	this.result = randomInt(this.config.maxResult + 1);
 	this.left = this.right * this.result;
 	
 	this.addInput(this.result);
@@ -328,7 +425,7 @@ function Division() {
 }
 
 Division.prototype = {
-	config: divisionConfig,
+	config: config.divisionConfig,
 	
 	createExercise: function() {
 		return new Division();
@@ -357,8 +454,8 @@ extend(Division, Exercise);
 function RestDivision() {
 	Exercise.call(this, 2);
 	
-	this.right = randomInt(divisionConfig.maxOperand + 1);
-	this.result = randomInt(divisionConfig.maxResult + 1);
+	this.right = randomInt(this.config.maxOperand + 1);
+	this.result = randomInt(this.config.maxResult + 1);
 	this.rest = randomInt(this.right);
 	this.left = this.right * this.result + this.rest;
 	
@@ -369,7 +466,7 @@ function RestDivision() {
 }
 
 RestDivision.prototype = {
-	config: restDivisionConfig,
+	config: config.restDivisionConfig,
 	
 	createExercise: function() {
 		return new RestDivision();
@@ -413,14 +510,36 @@ function Addition() {
 
 	this.operator = "+";
 
-	var inverse = randomBoolean(additionConfig.inverseProbability);
+	var inverse = randomBoolean(this.config.inverseProbability);
 	if (inverse) {
 		this.input = randomInt(2);
 	}
 	
-	this.left = randomInt(additionConfig.maxBase + 1);
-	this.right = additionConfig.minOperand + randomInt(additionConfig.maxOperand - additionConfig.minOperand + 1);
-	this.result = this.left + this.right;
+	var carry = randomBoolean(this.config.carryProbability);
+	
+	var left;
+	var right;
+	var result;
+	while (true) {
+		left = randomIntRange(this.config.minOperand, this.config.maxBase);
+		right = randomIntRange(this.config.minOperand, this.config.maxOperand);
+		result = left + right;
+		
+		if (result > this.config.maxResult) {
+			continue;
+		}
+		
+		var hasCarry = (left % 10) + (right % 10) >= 10;
+		if (carry ^ hasCarry) {
+			continue;
+		}
+		
+		break;
+	}
+	
+	this.left = left;
+	this.right = right;
+	this.result = result;
 	
 	this.addInput(this.result);
 
@@ -428,33 +547,13 @@ function Addition() {
 }
 
 Addition.prototype = {
-	config: additionConfig,
+	config: config.additionConfig,
 	
 	createExercise: function() {
 		return new Addition();
 	},
 	
 	isOk : function() {
-		if (this.result < 0) {
-			return false;
-		}
-
-		if (this.result > additionConfig.maxResult) {
-			return false;
-		}
-		
-		if (this.left == 0) {
-			return false;
-		}
-
-		if (this.right == 0) {
-			return false;
-		}
-		
-		if (this.result == 0) {
-			return false;
-		}
-		
 		return true;
 	}
 }
@@ -466,9 +565,31 @@ function Substraction() {
 	
 	this.operator = "-";
 	
-	this.left = randomInt(substractionConfig.maxBase + 1);
-	this.right = substractionConfig.minOperand + randomInt(substractionConfig.maxOperand - substractionConfig.minOperand + 1);
-	this.result = this.left - this.right;
+	var carry = randomBoolean(this.config.carryProbability);
+	
+	var left;
+	var right;
+	var result;
+	while (true) {
+		left = randomInt(this.config.maxBase + 1);
+		right = randomIntRange(this.config.minOperand, this.config.maxOperand);
+		result = left - right;
+		
+		if (result < this.config.minResult) {
+			continue;
+		}
+		
+		var hasCarry = ((left % 10) - (right % 10)) < 0;
+		if (hasCarry ^ carry) {
+			continue;
+		}
+		
+		break;
+	}
+	
+	this.left = left;
+	this.right = right;
+	this.result = result;
 	
 	this.addInput(this.result);
 
@@ -476,29 +597,13 @@ function Substraction() {
 }
 
 Substraction.prototype = {
-	config: substractionConfig,
+	config: config.substractionConfig,
 	
 	createExercise: function() {
 		return new Substraction();
 	},
 	
 	isOk : function() {
-		if (this.result < 0) {
-			return false;
-		}
-		
-		if (this.left == 0) {
-			return false;
-		}
-		
-		if (this.right == 0) {
-			return false;
-		}
-		
-		if (this.result == 0) {
-			return false;
-		}
-		
 		return true;
 	}
 }
@@ -555,12 +660,28 @@ function countDone() {
 
 var exercises = [];
 
+function setConfig(n) {
+	docCookies.setItem("config", n, Infinity);
+	document.location.reload();
+}
+
 function printExercises() {
 	var keys = {};
 	
-	document.write('<div class="exercises">');
+	var configId = getConfigId();
+	document.write('<div class="settings">');
+	for (var n = 0, cnt = settings.length; n < cnt; n++) {
+		var setting = settings[n];
+		
+		document.write('<span>');
+		document.write('<input type="radio" name="settings"' + (n == configId ? ' checked="true"' : '') + ' onchange="setConfig(' + n + ');"/>' + setting.name);
+		document.write('</span>');
+	}
+	document.write('</div>');
+	
+	document.write('<div id="exercises">');
 	document.write('<div class="row">');
-	for (var n = 0, column = 0; n < exerciseCount; n++, column++) {
+	for (var n = 0, column = 0; n < config.exerciseCount; n++, column++) {
 		var exercise;
 		var failed = 0;
 		while (true) {
