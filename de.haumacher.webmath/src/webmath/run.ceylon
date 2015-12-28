@@ -20,7 +20,7 @@ shared void run() {
 	page.init();
 	
 	AdditionConfig addConfig = AdditionConfig();
-	value addition = Addition(page, addConfig);
+	value addition = AdditionDisplay(page, Addition(addConfig));
 	
 	page.append(addition);
 	

@@ -15,12 +15,13 @@ shared class AdditionConfig() {
 	shared Boolean randomCarry() => randomBoolean(carryProbability);
 }
 
-shared class Addition extends Widget {
+shared class Addition {
+	
 	Integer _left;
 	Integer _right;
-	IntegerField _resultField;
+	Integer _result;
 	
-	shared new (Page page, AdditionConfig config) extends Widget(page) {
+	shared new(AdditionConfig config) {
 		Boolean carry = config.randomCarry();
 		while (true) {
 			Integer left = config.randomOperand();
@@ -38,29 +39,44 @@ shared class Addition extends Widget {
 			
 			_left = left;
 			_right = right;
-			value resultField = IntegerField(page);
-			_resultField = resultField;
-			_resultField.onUpdate = (Integer? val) {
-				if (exists val) {
-					resultField.disabled = true;
-					if (val == result) {
-						resultField.addClass("resultOk");
-					} else {
-						resultField.addClass("resultWrong");
-					}
-				}
-			};
-			
+			_result = result;
 			break;
 		}
+	}
+	
+	shared Integer left => _left;
+	shared Integer right => _right;
+	shared Integer result => _result;
+	
+}
+
+shared class AdditionDisplay extends Widget {
+	IntegerField _resultField;
+	
+	Addition _addition;
+	
+	shared new (Page page, Addition addition) extends Widget(page) {
+		_addition = addition;
 		
+		value resultField = IntegerField(page);
+		_resultField = resultField;
+		_resultField.onUpdate = (Integer? val) {
+			if (exists val) {
+				resultField.disabled = true;
+				if (val == addition.result) {
+					resultField.addClass("resultOk");
+				} else {
+					resultField.addClass("resultWrong");
+				}
+			}
+		};
 	}
 	
 	shared actual void _display(TagOutput output) {
 		output.tag("div").attribute("id", id);
-		output.text(_left.string);
+		output.text(_addition.left.string);
 		output.text(" + ");
-		output.text(_right.string);
+		output.text(_addition.right.string);
 		output.text(" = ");
 		_resultField.render(output);
 		output.end("div");
