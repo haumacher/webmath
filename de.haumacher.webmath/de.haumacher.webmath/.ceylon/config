@@ -1,0 +1,7 @@
+
+[compiler]
+source=src
+resource=webapp
+
+[defaults]
+encoding=Cp1252

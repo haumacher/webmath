@@ -1,0 +1,31 @@
+<html>
+<head>
+<title>Mathe-Training</title>
+<style type="text/css">
+	input.resultOk {
+		color: white;
+		background-color: #00DD00;
+	}
+	input.resultWrong {
+		color: white;
+		background-color: #DD0000;
+	}
+</style>
+<script type="text/javascript" src="scripts/require.js"></script>
+<script type="text/javascript">
+    require.config({
+        // location of our project's compiled modules
+        baseUrl: '../modules'
+    });
+    
+    function onload() {
+	    require(['webmath/1.0.0/webmath-1.0.0'], function (module) { module.run(); });
+    }
+</script>
+</head>
+
+<body onload="onload()">
+<h1>Mathe-Training</h1>
+
+</body>
+</html>
