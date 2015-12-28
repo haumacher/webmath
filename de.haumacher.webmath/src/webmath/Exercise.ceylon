@@ -5,11 +5,6 @@ import widget {
 	TagOutput
 }
 
-shared class Range(shared Integer min, shared Integer max) {
-	shared Boolean contains(Integer val) => val >= min && val <= max;
-	shared Integer randomValue() => randomRange(min, max);
-}
-
 shared class AdditionConfig() {
 	shared variable Range operandRange = Range(0, 100);
 	shared variable Range resultRange = Range(0, 100);
@@ -73,22 +68,3 @@ shared class Addition extends Widget {
 	
 }
 
-Boolean randomBoolean(Float probability) {
-	return randomUnit() < probability;
-}
-
-Integer randomInt(Integer limit) {
-	return (randomUnit() * limit).integer;
-}
-
-Integer randomRange(Integer min, Integer max) {
-	return min + (randomUnit() * (max - min + 1)).integer;
-}
-
-Float randomUnit() {
-	Float rnd;
-	dynamic {
-		rnd = Math.random();
-	}
-	return rnd;
-}
