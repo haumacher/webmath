@@ -28,9 +28,8 @@ shared class TagOutput() {
 		if (exists val) {
 			buffer.append(" ");
 			buffer.append(name);
-			buffer.append("=");
-			buffer.append("\"");
-			buffer.append(val);
+			buffer.append("=\"");
+			quoteAttributeValue(val);
 			buffer.append("\"");
 		}
 		return this;
@@ -64,7 +63,7 @@ shared class TagOutput() {
 	
 	shared void text(String text) {
 		closeStart();
-		buffer.append(text);
+		quoteText(text);
 	}
 	
 	void closeStart() {
@@ -73,4 +72,44 @@ shared class TagOutput() {
 			tagOpen = false;
 		}
 	}
+	
+	void quoteText(String val) {
+		val.each((ch) {
+			switch (ch)
+			case ('<') {
+				buffer.append("&lt;");
+			}
+			case ('>') {
+				buffer.append("&gt;");
+			}
+			case ('&') {
+				buffer.append("&amp;");
+			}
+			else {
+				buffer.appendCharacter(ch);
+			}
+		});
+	}
+	
+	void quoteAttributeValue(String val) {
+		val.each((ch) {
+			switch (ch)
+			case ('<') {
+				buffer.append("&lt;");
+			}
+			case ('>') {
+				buffer.append("&gt;");
+			}
+			case ('&') {
+				buffer.append("&amp;");
+			}
+			case ('"') {
+				buffer.append("&quot;");
+			}
+			else {
+				buffer.appendCharacter(ch);
+			}
+		});
+	}
+
 }
