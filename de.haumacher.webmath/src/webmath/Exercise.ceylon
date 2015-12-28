@@ -62,6 +62,7 @@ shared class AdditionDisplay extends Widget {
 		_resultField = resultField;
 		_resultField.onUpdate = (Integer? val) {
 			if (exists val) {
+				// FIXME: Workaround for compiler bug that produces an uninitialized outer$ reference, if directly accessing the member _resultField.
 				resultField.disabled = true;
 				if (val == addition.result) {
 					resultField.addClass("resultOk");
