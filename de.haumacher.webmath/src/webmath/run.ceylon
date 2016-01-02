@@ -46,18 +46,18 @@ shared void run() {
 		]);
 		
 	MutableSet<String> ids = HashSet<String>();
-	Exercise createTaskWithNewId() {
+	ExerciseType.Exercise createTaskWithNewId() {
 		while (true) {
-			Exercise task = config.create(); 
+			ExerciseType.Exercise task = config.create(); 
 			if (ids.add(task.id())) {
 				return task;
 			}
 		}
 	}
-	Exercise[] tasks = [for (n in 0..9) createTaskWithNewId()];
+	ExerciseType.Exercise[] tasks = [for (n in 0..9) createTaskWithNewId()];
 	
 	value page = Page(document());
 	page.init();
 	
-	tasks.each((Exercise task) {page.append(task.display(page));});
+	tasks.each((ExerciseType.Exercise task) {page.append(task.display(page));});
 }

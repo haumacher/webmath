@@ -11,7 +11,7 @@ shared class TypeConfig(
 ) {}
 
 shared class ExerciseConfig
-satisfies Factory<Exercise> 
+satisfies Factory<ExerciseType.Exercise> 
 {
 	TypeConfig[] _types;
 	Float[] _probabilitySum;
@@ -29,7 +29,7 @@ satisfies Factory<Exercise>
 		_probabilityTotal = sum;
 	}
 	
-	shared actual Exercise create() {
+	shared actual ExerciseType.Exercise create() {
 		Float rnd = randomUnit() * _probabilityTotal;
 		
 		assert (exists index = _probabilitySum.indexesWhere((sum) => rnd <= sum).first);
@@ -39,69 +39,77 @@ satisfies Factory<Exercise>
 	
 }
 
-shared abstract class Exercise() {
+shared abstract class ExerciseType() {
 	
-	shared formal String id();
-	
-	shared Display display(Page page) => Display(page);
+	shared formal class Exercise() {
 		
-	shared formal class Display(Page page) extends Widget(page) {
+		shared formal String id();
 		
+		shared Display display(Page page) => Display(page);
+			
+		shared formal class Display(Page page) extends Widget(page) {
+			
+		}
 	}
+	
+	shared Exercise create() => Exercise();
+	
 }
 
-shared abstract class SingleResultExercise() extends Exercise() {
-	shared formal Integer result;
+shared abstract class SingleResultType() extends ExerciseType() {
 	
-	shared actual abstract default class Display(Page page) extends super.Display(page) {
+	shared actual abstract default class Exercise() extends super.Exercise() {
+		shared formal Integer result;
 		
-		IntegerField createResultField() {
-			value field = IntegerField(page);
-			field.onUpdate = (Integer? val) {
-				if (exists val) {
-					field.disabled = true;
-					if (val == result) {
-						field.addClass("resultOk");
-					} else {
-						field.addClass("resultWrong");
+		shared actual abstract default class Display(Page page) extends super.Display(page) {
+			
+			IntegerField createResultField() {
+				value field = IntegerField(page);
+				field.onUpdate = (Integer? val) {
+					if (exists val) {
+						field.disabled = true;
+						if (val == result) {
+							field.addClass("resultOk");
+						} else {
+							field.addClass("resultWrong");
+						}
 					}
-				}
-			};
-			return field;
-		}
-		
-		shared IntegerField resultField = createResultField();
-	}
-	
-}
-
-shared abstract class BinaryOperandExercise() extends SingleResultExercise() {
-	shared formal Integer left;
-	shared formal Integer right;
-	
-	shared actual abstract default class Display(Page page) extends super.Display(page) {
-		
-		shared formal String operator();
-		
-		shared actual void _display(TagOutput output) {
-			output.tag("div").attribute("id", id);
-			output.text(left.string);
-			output.text(" ");
-			output.text(operator());
-			output.text(" ");
-			output.text(right.string);
-			output.text(" = ");
-			resultField.render(output);
-			output.end("div");
+				};
+				return field;
+			}
+			
+			shared IntegerField resultField = createResultField();
 		}
 		
 	}
 }
 
+shared abstract class BinaryOperandType() extends SingleResultType() {
 
-shared abstract class ExerciseType() satisfies Factory<Exercise> {
-	
+	shared actual abstract default class Exercise() extends super.Exercise() {
+		shared formal Integer left;
+		shared formal Integer right;
+		
+		shared actual abstract default class Display(Page page) extends super.Display(page) {
+			
+			shared formal String operator();
+			
+			shared actual void _display(TagOutput output) {
+				output.tag("div").attribute("id", id);
+				output.text(left.string);
+				output.text(" ");
+				output.text(operator());
+				output.text(" ");
+				output.text(right.string);
+				output.text(" = ");
+				resultField.render(output);
+				output.end("div");
+			}
+			
+		}
+	}
 }
+
 
 shared class OperandConfig(
 	shared variable Range operandRange,
@@ -121,45 +129,45 @@ shared class AdditionConfig(
 
 shared class AdditionType(
 	AdditionConfig config
-) extends ExerciseType() {
-	shared actual Addition create() => Addition(config);
-}
-
-shared class Addition extends BinaryOperandExercise {
+) extends BinaryOperandType() {
 	
-	shared actual Integer left;
-	shared actual Integer right;
-	shared actual Integer result;
-	
-	shared new(AdditionConfig config) extends BinaryOperandExercise() {
-		Boolean carry = config.randomCarry();
-		while (true) {
-			Integer leftTry = config.randomOperand();
-			Integer rightTry = config.randomOperand();
-			Integer resultTry = leftTry + rightTry;
-			
-			if (!config.acceptResult(resultTry)) {
-				continue;
+	shared actual class Exercise() extends super.Exercise() {
+		
+		shared actual Integer left;
+		shared actual Integer right;
+		shared actual Integer result;
+		
+		// {
+			Boolean carry = config.randomCarry();
+			while (true) {
+				Integer leftTry = config.randomOperand();
+				Integer rightTry = config.randomOperand();
+				Integer resultTry = leftTry + rightTry;
+				
+				if (!config.acceptResult(resultTry)) {
+					continue;
+				}
+				
+				value hasCarry = (leftTry % 10) + (rightTry % 10) >= 10;
+				// FIXME: Use XOR operator, exists?
+				if (!(carry && hasCarry || (!carry && !hasCarry))) {
+					continue;
+				}
+				
+				left = leftTry;
+				right = rightTry;
+				result = resultTry;
+				break;
 			}
-			
-			value hasCarry = (leftTry % 10) + (rightTry % 10) >= 10;
-			// FIXME: Use XOR operator, exists?
-			if (!(carry && hasCarry || (!carry && !hasCarry))) {
-				continue;
-			}
-			
-			left = leftTry;
-			right = rightTry;
-			result = resultTry;
-			break;
+		// }
+		
+		shared actual String id() => max{left, right}.string + "+" + min{left, right}.string;
+		
+		shared actual class Display(Page page) extends super.Display(page) {
+			shared actual String operator() => "+";
 		}
 	}
 	
-	shared actual String id() => max{left, right}.string + "+" + min{left, right}.string;
-	
-	shared actual class Display(Page page) extends super.Display(page) {
-		shared actual String operator() => "+";
-	}
 }
 
 shared class SubstractionConfig(
@@ -175,44 +183,44 @@ shared class SubstractionConfig(
 
 shared class SubstractionType(
 	SubstractionConfig config
-) extends ExerciseType() {
-	shared actual Substraction create() => Substraction(config);
-}
-
-shared class Substraction extends BinaryOperandExercise {
+) extends BinaryOperandType() {
 	
-	shared actual Integer left;
-	shared actual Integer right;
-	shared actual Integer result;
-	
-	shared new(SubstractionConfig config) extends BinaryOperandExercise() {
-		Boolean carry = config.randomCarry();
-		while (true) {
-			Integer leftTry = config.randomBase();
-			Integer rightTry = config.randomOperand();
-			Integer resultTry = leftTry - rightTry;
-			
-			if (!config.acceptResult(resultTry)) {
-				continue;
+	shared actual class Exercise() extends super.Exercise() {
+		
+		shared actual Integer left;
+		shared actual Integer right;
+		shared actual Integer result;
+		
+		// {
+			Boolean carry = config.randomCarry();
+			while (true) {
+				Integer leftTry = config.randomBase();
+				Integer rightTry = config.randomOperand();
+				Integer resultTry = leftTry - rightTry;
+				
+				if (!config.acceptResult(resultTry)) {
+					continue;
+				}
+				
+				value hasCarry = (leftTry % 10) < (rightTry % 10);
+				// FIXME: Use XOR operator, exists?
+				if (!(carry && hasCarry || (!carry && !hasCarry))) {
+					continue;
+				}
+				
+				left = leftTry;
+				right = rightTry;
+				result = resultTry;
+				break;
 			}
-			
-			value hasCarry = (leftTry % 10) < (rightTry % 10);
-			// FIXME: Use XOR operator, exists?
-			if (!(carry && hasCarry || (!carry && !hasCarry))) {
-				continue;
-			}
-			
-			left = leftTry;
-			right = rightTry;
-			result = resultTry;
-			break;
+		// }
+		
+		shared actual String id() => left.string + "-" + right.string;
+		
+		shared actual class Display(Page page) extends super.Display(page) {
+			shared actual String operator() => "-";
 		}
 	}
-	
-	shared actual String id() => left.string + "-" + right.string;
-	
-	shared actual class Display(Page page) extends super.Display(page) {
-		shared actual String operator() => "-";
-	}
+
 }
 
