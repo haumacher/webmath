@@ -127,7 +127,7 @@ shared class AdditionConfig(
 	shared Boolean randomCarry() => randomBoolean(carryProbability);
 }
 
-shared class AdditionType(
+shared class Addition(
 	AdditionConfig config
 ) extends BinaryOperandType() {
 	
@@ -182,7 +182,7 @@ shared class SubstractionConfig(
 	shared Integer randomBase() => baseRange.randomValue();
 }
 
-shared class SubstractionType(
+shared class Substraction(
 	SubstractionConfig config
 ) extends BinaryOperandType() {
 	
