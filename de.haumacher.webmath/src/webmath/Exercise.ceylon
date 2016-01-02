@@ -6,7 +6,7 @@ import widget {
 }
 
 shared class TypeConfig(
-	shared variable ExerciseType factory,
+	shared variable ExerciseType type,
 	shared variable Float probability = 1.0
 ) {}
 
@@ -34,7 +34,7 @@ satisfies Factory<Exercise>
 		
 		assert (exists index = _probabilitySum.indexesWhere((sum) => rnd <= sum).first);
 		assert (exists config = _types[index]);
-		return config.factory.create();
+		return config.type.create();
 	}
 	
 }
@@ -110,25 +110,29 @@ shared abstract class BinaryOperandDisplay<E>(Page page, E exercise) extends Sin
 	
 }
 
-shared interface ExerciseType satisfies Factory<Exercise> {
+shared abstract class ExerciseType() satisfies Factory<Exercise> {
 	
 }
 
-shared class AdditionConfig(
-	shared variable Range operandRange = Range(1, 100),
-	shared variable Range resultRange = Range(1, 100),
-	shared variable Float carryProbability = 0.8
+shared class OperandConfig(
+	shared variable Range operandRange,
+	shared variable Range resultRange
 ) {
 	shared Integer randomOperand() => operandRange.randomValue();
 	shared Boolean acceptResult(Integer result) => resultRange.contains(result);
+}
+
+shared class AdditionConfig(
+	Range operandRange = Range(1, 100),
+	Range resultRange = Range(1, 100),
+	shared variable Float carryProbability = 0.8
+) extends OperandConfig(operandRange, resultRange) {
 	shared Boolean randomCarry() => randomBoolean(carryProbability);
 }
 
 shared class AdditionType(
 	AdditionConfig config
-) 
-	satisfies ExerciseType
-{
+) extends ExerciseType() {
 	shared actual Addition create() => Addition(config);
 }
 
@@ -186,9 +190,7 @@ shared class SubstractionConfig(
 
 shared class SubstractionType(
 	SubstractionConfig config
-) 
-	satisfies ExerciseType
-{
+) extends ExerciseType() {
 	shared actual Substraction create() => Substraction(config);
 }
 

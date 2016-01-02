@@ -24,7 +24,7 @@ shared void run() {
 		ExerciseConfig([
 			TypeConfig { 
 				probability = 1.0;
-				factory = AdditionType( 
+				type = AdditionType( 
 					AdditionConfig {
 						operandRange = Range(11,200);
 						resultRange = Range(41,200);
@@ -34,7 +34,7 @@ shared void run() {
 			},
 			TypeConfig { 
 				probability = 2.0;
-				factory = SubstractionType(
+				type = SubstractionType(
 					SubstractionConfig {
 						baseRange = Range(100,200);
 						operandRange = Range(11,200);
