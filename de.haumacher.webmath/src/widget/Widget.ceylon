@@ -46,4 +46,8 @@ shared abstract class Widget(shared Page page) satisfies Part {
 		// Hook for subclasses.
 	}
 	
+	shared void invalidate() {
+		page.requestRepaint(this);
+	}
+	
 }

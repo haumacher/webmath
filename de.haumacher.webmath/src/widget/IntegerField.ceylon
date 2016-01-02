@@ -74,10 +74,6 @@ shared class IntegerField(Page page) extends Widget(page) {
 		notifyChange(false);
 	}
 	
-	void invalidate() {
-		page.requestRepaint(this);
-	}
-
 	shared void addClass(String newClass) {
 		if (classes.empty) {
 			classes = newClass;
