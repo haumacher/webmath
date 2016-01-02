@@ -5,66 +5,73 @@ import widget {
 	TagOutput
 }
 
-shared class AdditionConfig() {
-	shared variable Range operandRange = Range(0, 100);
-	shared variable Range resultRange = Range(0, 100);
-	shared variable Float carryProbability = 0.5;
-	
-	shared Integer randomOperand() => operandRange.randomValue();
-	shared Boolean acceptResult(Integer result) => resultRange.contains(result);
-	shared Boolean randomCarry() => randomBoolean(carryProbability);
-}
+shared class TypeConfig(
+	shared variable ExerciseType factory,
+	shared variable Float probability = 1.0
+) {}
 
-shared class Addition {
+shared class ExerciseConfig
+satisfies Factory<Exercise> 
+{
+	TypeConfig[] _types;
+	Float[] _probabilitySum;
+	Float _probabilityTotal;
 	
-	Integer _left;
-	Integer _right;
-	Integer _result;
-	
-	shared new(AdditionConfig config) {
-		Boolean carry = config.randomCarry();
-		while (true) {
-			Integer left = config.randomOperand();
-			Integer right = config.randomOperand();
-			Integer result = left + right;
-			
-			if (!config.acceptResult(result)) {
-				continue;
-			}
-			
-			value hasCarry = (left % 10) + (right % 10) >= 10;
-			if (!(carry && hasCarry || (!carry && !hasCarry))) {
-				continue;
-			}
-			
-			_left = left;
-			_right = right;
-			_result = result;
-			break;
+	shared new(TypeConfig[] types) {
+		_types = types;
+		
+		variable Float sum = 0.0;
+		Float sumOfPrefix(Float x) {
+			sum += x;
+			return sum;
 		}
+		_probabilitySum = [for (type in types) sumOfPrefix(type.probability)];
+		_probabilityTotal = sum;
 	}
 	
-	shared Integer left => _left;
-	shared Integer right => _right;
-	shared Integer result => _result;
+	shared actual Exercise create() {
+		Float rnd = randomUnit() * _probabilityTotal;
+		
+		assert (exists index = _probabilitySum.indexesWhere((sum) => rnd <= sum).first);
+		assert (exists config = _types[index]);
+		return config.factory.create();
+	}
 	
 }
 
-shared class AdditionDisplay extends Widget {
+shared abstract class Display(Page page) extends Widget(page) {
+	
+}
+
+shared interface Exercise {
+	
+	shared formal String id();
+	
+	shared formal Display display(Page page);
+}
+
+shared interface SingleResultExercise satisfies Exercise {
+	shared formal Integer result;
+}
+
+shared abstract class SingleResultDisplay<E> extends Display 
+	given E satisfies SingleResultExercise
+{
+	
+	E _exercise;
 	IntegerField _resultField;
 	
-	Addition _addition;
-	
-	shared new (Page page, Addition addition) extends Widget(page) {
-		_addition = addition;
+	shared new (Page page, E exercise) extends Display(page) {
+		_exercise = exercise;
 		
 		value resultField = IntegerField(page);
+		
 		_resultField = resultField;
 		_resultField.onUpdate = (Integer? val) {
 			if (exists val) {
 				// FIXME: Workaround for compiler bug that produces an uninitialized outer$ reference, if directly accessing the member _resultField.
 				resultField.disabled = true;
-				if (val == addition.result) {
+				if (val == exercise.result) {
 					resultField.addClass("resultOk");
 				} else {
 					resultField.addClass("resultWrong");
@@ -73,15 +80,155 @@ shared class AdditionDisplay extends Widget {
 		};
 	}
 	
+	shared IntegerField resultField => _resultField;
+	shared E exercise => _exercise;
+}
+
+shared interface BinaryOperandExercise satisfies SingleResultExercise {
+	shared formal Integer left;
+	shared formal Integer right;
+}
+
+
+shared abstract class BinaryOperandDisplay<E>(Page page, E exercise) extends SingleResultDisplay<E>(page, exercise) 
+	given E satisfies BinaryOperandExercise
+{
+	
+	shared formal String operator();
+	
 	shared actual void _display(TagOutput output) {
 		output.tag("div").attribute("id", id);
-		output.text(_addition.left.string);
-		output.text(" + ");
-		output.text(_addition.right.string);
+		output.text(exercise.left.string);
+		output.text(" ");
+		output.text(operator());
+		output.text(" ");
+		output.text(exercise.right.string);
 		output.text(" = ");
-		_resultField.render(output);
+		resultField.render(output);
 		output.end("div");
 	}
 	
 }
 
+shared interface ExerciseType satisfies Factory<Exercise> {
+	
+}
+
+shared class AdditionConfig(
+	shared variable Range operandRange = Range(1, 100),
+	shared variable Range resultRange = Range(1, 100),
+	shared variable Float carryProbability = 0.8
+) {
+	shared Integer randomOperand() => operandRange.randomValue();
+	shared Boolean acceptResult(Integer result) => resultRange.contains(result);
+	shared Boolean randomCarry() => randomBoolean(carryProbability);
+}
+
+shared class AdditionType(
+	AdditionConfig config
+) 
+	satisfies ExerciseType
+{
+	shared actual Addition create() => Addition(config);
+}
+
+shared class Addition satisfies BinaryOperandExercise {
+	
+	shared actual Integer left;
+	shared actual Integer right;
+	shared actual Integer result;
+	
+	shared new(AdditionConfig config) {
+		Boolean carry = config.randomCarry();
+		while (true) {
+			Integer leftTry = config.randomOperand();
+			Integer rightTry = config.randomOperand();
+			Integer resultTry = leftTry + rightTry;
+			
+			if (!config.acceptResult(resultTry)) {
+				continue;
+			}
+			
+			value hasCarry = (leftTry % 10) + (rightTry % 10) >= 10;
+			// FIXME: Use XOR operator, exists?
+			if (!(carry && hasCarry || (!carry && !hasCarry))) {
+				continue;
+			}
+			
+			left = leftTry;
+			right = rightTry;
+			result = resultTry;
+			break;
+		}
+	}
+	
+	shared actual String id() => max{left, right}.string + "+" + min{left, right}.string;
+	
+	shared actual Display display(Page page) => AdditionDisplay(page, this);
+}
+
+shared class AdditionDisplay(Page page, Addition exercise) extends BinaryOperandDisplay<Addition>(page, exercise) {
+
+	shared actual String operator() => "+";
+	
+}
+
+shared class SubstractionConfig(
+	shared variable Range baseRange = Range(1, 100),
+	Range operandRange = Range(1, 100),
+	Range resultRange = Range(1, 100),
+	Float carryProbability = 0.8
+) 
+	extends AdditionConfig(operandRange, resultRange, carryProbability)
+{
+	shared Integer randomBase() => baseRange.randomValue();
+}
+
+shared class SubstractionType(
+	SubstractionConfig config
+) 
+	satisfies ExerciseType
+{
+	shared actual Substraction create() => Substraction(config);
+}
+
+shared class Substraction satisfies BinaryOperandExercise {
+	
+	shared actual Integer left;
+	shared actual Integer right;
+	shared actual Integer result;
+	
+	shared new(SubstractionConfig config) {
+		Boolean carry = config.randomCarry();
+		while (true) {
+			Integer leftTry = config.randomBase();
+			Integer rightTry = config.randomOperand();
+			Integer resultTry = leftTry - rightTry;
+			
+			if (!config.acceptResult(resultTry)) {
+				continue;
+			}
+			
+			value hasCarry = (leftTry % 10) < (rightTry % 10);
+			// FIXME: Use XOR operator, exists?
+			if (!(carry && hasCarry || (!carry && !hasCarry))) {
+				continue;
+			}
+			
+			left = leftTry;
+			right = rightTry;
+			result = resultTry;
+			break;
+		}
+	}
+	
+	shared actual String id() => left.string + "-" + right.string;
+	
+	shared actual Display display(Page page) => SubstractionDisplay(page, this);
+}
+
+shared class SubstractionDisplay(Page page, Substraction exercise) extends BinaryOperandDisplay<Substraction>(page, exercise) {
+	
+	shared actual String operator() => "-";
+	
+}
