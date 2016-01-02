@@ -29,7 +29,7 @@ shared class Addition(
 		shared actual Integer result;
 		
 		// FIXME: Move to an initializer with its own scope. E.g. the variable carry should not be a member of Exercise, but a local variable of the initializer.
-		// {
+		if (true) {
 			Boolean carry = config.randomCarry();
 			while (true) {
 				Integer leftTry = config.randomOperand();
@@ -51,7 +51,7 @@ shared class Addition(
 				result = resultTry;
 				break;
 			}
-		// }
+		}
 		
 		shared actual String id() => max{left, right}.string + "+" + min{left, right}.string;
 		

@@ -19,19 +19,16 @@ shared class Multiplication(
 		shared actual Integer right;
 		shared actual Integer result;
 		
-		// FIXME: Move to an initializer with its own scope. E.g. the variable carry should not be a member of Exercise, but a local variable of the initializer.
-		// {
-			while (true) {
-				Integer leftTry = config.randomOperand();
-				Integer rightTry = config.randomOperand();
-				Integer resultTry = leftTry * rightTry;
-				
-				left = leftTry;
-				right = rightTry;
-				result = resultTry;
-				break;
-			}
-		// }
+		while (true) {
+			Integer leftTry = config.randomOperand();
+			Integer rightTry = config.randomOperand();
+			Integer resultTry = leftTry * rightTry;
+			
+			left = leftTry;
+			right = rightTry;
+			result = resultTry;
+			break;
+		}
 		
 		shared actual String id() => left.string + "*" + right.string;
 		

@@ -24,7 +24,7 @@ shared class Substraction(
 		shared actual Integer result;
 		
 		// FIXME: Move to an initializer with its own scope. E.g. the variable carry should not be a member of Exercise, but a local variable of the initializer.
-		// {
+		if (true) {
 			Boolean carry = config.randomCarry();
 			while (true) {
 				Integer leftTry = config.randomBase();
@@ -46,7 +46,7 @@ shared class Substraction(
 				result = resultTry;
 				break;
 			}
-		// }
+		}
 		
 		shared actual String id() => left.string + "-" + right.string;
 		

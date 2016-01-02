@@ -28,7 +28,7 @@ shared class Division(
 		shared Integer remainder;
 		
 		// FIXME: Move to an initializer with its own scope. E.g. the variable carry should not be a member of Exercise, but a local variable of the initializer.
-		// {
+		if (true) {
 			Boolean remainderRequired = config.randomRemainder();
 			while (true) {
 				Integer leftTry = config.randomBase();
@@ -53,7 +53,7 @@ shared class Division(
 				remainder = remainderTry;
 				break;
 			}
-		// }
+		}
 		
 		shared actual String id() => left.string + "-" + right.string;
 		
