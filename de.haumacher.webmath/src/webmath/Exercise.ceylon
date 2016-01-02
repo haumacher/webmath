@@ -43,14 +43,14 @@ shared abstract class Display(Page page) extends Widget(page) {
 	
 }
 
-shared interface Exercise {
+shared abstract class Exercise() {
 	
 	shared formal String id();
 	
 	shared formal Display display(Page page);
 }
 
-shared interface SingleResultExercise satisfies Exercise {
+shared abstract class SingleResultExercise() extends Exercise() {
 	shared formal Integer result;
 }
 
@@ -84,7 +84,7 @@ shared abstract class SingleResultDisplay<E> extends Display
 	shared E exercise => _exercise;
 }
 
-shared interface BinaryOperandExercise satisfies SingleResultExercise {
+shared abstract class BinaryOperandExercise() extends SingleResultExercise() {
 	shared formal Integer left;
 	shared formal Integer right;
 }
@@ -136,13 +136,13 @@ shared class AdditionType(
 	shared actual Addition create() => Addition(config);
 }
 
-shared class Addition satisfies BinaryOperandExercise {
+shared class Addition extends BinaryOperandExercise {
 	
 	shared actual Integer left;
 	shared actual Integer right;
 	shared actual Integer result;
 	
-	shared new(AdditionConfig config) {
+	shared new(AdditionConfig config) extends BinaryOperandExercise() {
 		Boolean carry = config.randomCarry();
 		while (true) {
 			Integer leftTry = config.randomOperand();
@@ -194,13 +194,13 @@ shared class SubstractionType(
 	shared actual Substraction create() => Substraction(config);
 }
 
-shared class Substraction satisfies BinaryOperandExercise {
+shared class Substraction extends BinaryOperandExercise {
 	
 	shared actual Integer left;
 	shared actual Integer right;
 	shared actual Integer result;
 	
-	shared new(SubstractionConfig config) {
+	shared new(SubstractionConfig config) extends BinaryOperandExercise() {
 		Boolean carry = config.randomCarry();
 		while (true) {
 			Integer leftTry = config.randomBase();
