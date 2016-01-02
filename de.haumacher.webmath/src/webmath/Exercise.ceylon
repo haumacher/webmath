@@ -137,6 +137,7 @@ shared class AdditionType(
 		shared actual Integer right;
 		shared actual Integer result;
 		
+		// FIXME: Move to an initializer with its own scope. E.g. the variable carry should not be a member of Exercise, but a local variable of the initializer.
 		// {
 			Boolean carry = config.randomCarry();
 			while (true) {
@@ -191,6 +192,7 @@ shared class SubstractionType(
 		shared actual Integer right;
 		shared actual Integer result;
 		
+		// FIXME: Move to an initializer with its own scope. E.g. the variable carry should not be a member of Exercise, but a local variable of the initializer.
 		// {
 			Boolean carry = config.randomCarry();
 			while (true) {
