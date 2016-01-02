@@ -76,5 +76,5 @@ shared void run(String? rootId) {
 	
 	value page = createPage(rootId);
 	
-	exercises.each((ExerciseType.Exercise exercise) {page.append(exercise.display(page));});
+	page.append(ExercisesDisplay(page, [for (x in exercises) x.display(page)]));
 }

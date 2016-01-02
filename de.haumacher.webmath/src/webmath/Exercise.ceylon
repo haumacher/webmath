@@ -75,7 +75,13 @@ shared abstract class ExerciseType() {
 		shared Display display(Page page) => Display(page);
 			
 		shared formal class Display(Page page) extends Widget(page) {
+			shared actual void _display(TagOutput output) {
+				output.tag("div").attribute("id", id).attribute("class", "exercise");
+				_displayContents(output);
+				output.end("div");
+			}
 			
+			shared formal void _displayContents(TagOutput output);
 		}
 	}
 	
@@ -116,8 +122,7 @@ shared abstract class BinaryOperandType() extends SingleResultType() {
 			
 			shared formal String operator();
 			
-			shared actual void _display(TagOutput output) {
-				output.tag("div").attribute("id", id);
+			shared actual void _displayContents(TagOutput output) {
 				output.text(left.string);
 				output.text(" ");
 				output.text(operator());
@@ -125,9 +130,16 @@ shared abstract class BinaryOperandType() extends SingleResultType() {
 				output.text(right.string);
 				output.text(" = ");
 				resultField.render(output);
-				output.end("div");
 			}
 			
 		}
+	}
+}
+
+class ExercisesDisplay(Page page, Widget[] widgets) extends Widget(page) {
+	shared actual void _display(TagOutput output) {
+		output.tag("div").attribute("id", id).attribute("class", "exercises");
+		widgets.each((x) => x.render(output));
+		output.end("div");
 	}
 }

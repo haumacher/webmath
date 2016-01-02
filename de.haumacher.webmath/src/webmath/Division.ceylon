@@ -88,8 +88,7 @@ shared class Division(
 				}
 			}
 			
-			shared actual void _display(TagOutput output) {
-				output.tag("div").attribute("id", id);
+			shared actual void _displayContents(TagOutput output) {
 				output.text(left.string);
 				output.text(" : ");
 				output.text(right.string);
@@ -99,7 +98,6 @@ shared class Division(
 					output.text(" R ");
 					remainderField.render(output);
 				}
-				output.end("div");
 			}
 			
 		}
