@@ -114,8 +114,10 @@ shared class Page(shared Document document, shared Element root) {
 	}
 	
 	shared void requestRepaint(Widget widget) {
-		repaintsById.put(widget.id, widget);
-		widget.getContents().each(dropRepaint);
+		if (widgetsById.defines(widget.id)) {
+			repaintsById.put(widget.id, widget);
+			widget.getContents().each(dropRepaint);
+		}
 	}
 	
 	void dropRepaint(Widget widget) {
