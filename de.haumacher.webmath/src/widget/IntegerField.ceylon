@@ -13,7 +13,7 @@ shared class IntegerField(Page page) extends Widget(page) {
 	variable String currentRaw = "";
 	variable Integer? _current = null;
 	
-	shared variable Anything(Integer?)? onUpdate = null;
+	shared variable Anything(IntegerField, Integer?)? onUpdate = null;
 	
 	shared actual void _display(TagOutput output) {
 		output.tag("input").attribute("id", id).attribute("value", currentRaw);
@@ -35,7 +35,7 @@ shared class IntegerField(Page page) extends Widget(page) {
 	
 	shared void notifyChange(Boolean fromUI) {
 		if (exists handler = onUpdate) {
-			handler(_current);
+			handler(this, _current);
 		}
 		if (fromUI) {
 			invalidate();

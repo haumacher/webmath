@@ -24,6 +24,16 @@
 		border-style: solid;
 		border-color: white;
 	}
+	#main {
+		padding-left: 3ex;
+		height: 80%;
+		display: flex;
+		flex-direction: column;
+		flex-wrap: wrap;
+	}
+	#main > div {
+		margin-top: 3px;
+	}
 </style>
 <script type="text/javascript" src="scripts/require.js"></script>
 <script type="text/javascript">
@@ -33,13 +43,16 @@
     });
     
     function onload() {
-	    require(['webmath/1.0.0/webmath-1.0.0'], function (module) { module.run(); });
+	    require(['webmath/1.0.0/webmath-1.0.0'], function (module) { module.run('main'); });
     }
 </script>
 </head>
 
 <body onload="onload()">
 <h1>Mathe-Training</h1>
+
+<div id="main">
+</div>
 
 </body>
 </html>

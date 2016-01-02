@@ -1,7 +1,8 @@
 
 import dom {
 
-	Document
+	Document,
+	Element
 }
 import widget {
 
@@ -19,7 +20,7 @@ Document document() {
 }
 
 "Run the module `webmath`."
-shared void run() {
+shared void run(String? rootId) {
 	value config = 
 		ExerciseConfig([
 			TypeConfig { 
@@ -42,6 +43,24 @@ shared void run() {
 						carryProbability = 0.9;
 					}
 				); 
+			},
+			TypeConfig { 
+				probability = 0.5;
+				type = Multiplication(
+					MultiplicationConfig {
+						operandRange = Range(2,10);
+					}
+				); 
+			},
+			TypeConfig { 
+				probability = 2.0;
+				type = Division(
+					DivisionConfig {
+						operandRange = Range(2,10);
+						remainderProbability = 0.7;
+						resultRange = Range(1,10);
+					}
+				); 
 			}
 		]);
 		
@@ -54,9 +73,16 @@ shared void run() {
 			}
 		}
 	}
-	ExerciseType.Exercise[] tasks = [for (n in 0..9) createTaskWithNewId()];
+	ExerciseType.Exercise[] tasks = [for (n in 0..60) createTaskWithNewId()];
 	
-	value page = Page(document());
+	Element root;
+	if (exists rootId) {
+		assert (exists specifiedRoot = document().getElementById(rootId));
+		root = specifiedRoot;
+	} else {
+		root = document().documentElement;
+	}
+	value page = Page(document(), root);
 	page.init();
 	
 	tasks.each((ExerciseType.Exercise task) {page.append(task.display(page));});

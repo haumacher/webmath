@@ -39,6 +39,15 @@ satisfies Factory<ExerciseType.Exercise>
 	
 }
 
+shared void finalizeField(IntegerField field, Boolean correct) {
+	field.disabled = true;
+	if (correct) {
+		field.addClass("resultOk");
+	} else {
+		field.addClass("resultWrong");
+	}
+}
+
 shared abstract class ExerciseType() {
 	
 	shared formal class Exercise() {
@@ -65,14 +74,9 @@ shared abstract class SingleResultType() extends ExerciseType() {
 			
 			IntegerField createResultField() {
 				value field = IntegerField(page);
-				field.onUpdate = (Integer? val) {
+				field.onUpdate = (IntegerField self, Integer? val) {
 					if (exists val) {
-						field.disabled = true;
-						if (val == result) {
-							field.addClass("resultOk");
-						} else {
-							field.addClass("resultWrong");
-						}
+						finalizeField(self, val == result);
 					}
 				};
 				return field;

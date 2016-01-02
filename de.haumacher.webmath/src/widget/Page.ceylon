@@ -10,7 +10,7 @@ import ceylon.collection {
 	ArrayList
 }
 
-shared class Page(shared Document document) {
+shared class Page(shared Document document, shared Element root) {
 	
 	MutableList<Widget> openWidgets = ArrayList<Widget>();
 	
@@ -49,7 +49,7 @@ shared class Page(shared Document document) {
 		revalidate();
 	}
 	
-	shared void append(Widget widget) => appendElement(document.documentElement, widget);
+	shared void append(Widget widget) => appendElement(root, widget);
 	
 	shared void update(Widget widget) {
 		Element? element = document.getElementById(widget.id);
