@@ -69,6 +69,11 @@ shared class Division(
 			
 			IntegerField createRemainderField() {
 				value field = IntegerField(page);
+				if (!hasRemainder()) {
+					// Initialize field, since it is not displayed, but the update logic of 
+					// the result field depends on the remainder value being initialized.
+					field.setValue(0);
+				}
 				field.onUpdate = updateFields;
 				return field;
 			}
