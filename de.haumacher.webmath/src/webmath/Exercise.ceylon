@@ -39,76 +39,65 @@ satisfies Factory<Exercise>
 	
 }
 
-shared abstract class Display(Page page) extends Widget(page) {
-	
-}
-
 shared abstract class Exercise() {
 	
 	shared formal String id();
 	
-	shared formal Display display(Page page);
+	shared Display display(Page page) => Display(page);
+		
+	shared formal class Display(Page page) extends Widget(page) {
+		
+	}
 }
 
 shared abstract class SingleResultExercise() extends Exercise() {
 	shared formal Integer result;
-}
-
-shared abstract class SingleResultDisplay<E> extends Display 
-	given E satisfies SingleResultExercise
-{
 	
-	E _exercise;
-	IntegerField _resultField;
-	
-	shared new (Page page, E exercise) extends Display(page) {
-		_exercise = exercise;
+	shared actual abstract default class Display(Page page) extends super.Display(page) {
 		
-		value resultField = IntegerField(page);
-		
-		_resultField = resultField;
-		_resultField.onUpdate = (Integer? val) {
-			if (exists val) {
-				// FIXME: Workaround for compiler bug that produces an uninitialized outer$ reference, if directly accessing the member _resultField.
-				resultField.disabled = true;
-				if (val == exercise.result) {
-					resultField.addClass("resultOk");
-				} else {
-					resultField.addClass("resultWrong");
+		IntegerField createResultField() {
+			value field = IntegerField(page);
+			field.onUpdate = (Integer? val) {
+				if (exists val) {
+					field.disabled = true;
+					if (val == result) {
+						field.addClass("resultOk");
+					} else {
+						field.addClass("resultWrong");
+					}
 				}
-			}
-		};
+			};
+			return field;
+		}
+		
+		shared IntegerField resultField = createResultField();
 	}
 	
-	shared IntegerField resultField => _resultField;
-	shared E exercise => _exercise;
 }
 
 shared abstract class BinaryOperandExercise() extends SingleResultExercise() {
 	shared formal Integer left;
 	shared formal Integer right;
-}
-
-
-shared abstract class BinaryOperandDisplay<E>(Page page, E exercise) extends SingleResultDisplay<E>(page, exercise) 
-	given E satisfies BinaryOperandExercise
-{
 	
-	shared formal String operator();
-	
-	shared actual void _display(TagOutput output) {
-		output.tag("div").attribute("id", id);
-		output.text(exercise.left.string);
-		output.text(" ");
-		output.text(operator());
-		output.text(" ");
-		output.text(exercise.right.string);
-		output.text(" = ");
-		resultField.render(output);
-		output.end("div");
+	shared actual abstract default class Display(Page page) extends super.Display(page) {
+		
+		shared formal String operator();
+		
+		shared actual void _display(TagOutput output) {
+			output.tag("div").attribute("id", id);
+			output.text(left.string);
+			output.text(" ");
+			output.text(operator());
+			output.text(" ");
+			output.text(right.string);
+			output.text(" = ");
+			resultField.render(output);
+			output.end("div");
+		}
+		
 	}
-	
 }
+
 
 shared abstract class ExerciseType() satisfies Factory<Exercise> {
 	
@@ -168,13 +157,9 @@ shared class Addition extends BinaryOperandExercise {
 	
 	shared actual String id() => max{left, right}.string + "+" + min{left, right}.string;
 	
-	shared actual Display display(Page page) => AdditionDisplay(page, this);
-}
-
-shared class AdditionDisplay(Page page, Addition exercise) extends BinaryOperandDisplay<Addition>(page, exercise) {
-
-	shared actual String operator() => "+";
-	
+	shared actual class Display(Page page) extends super.Display(page) {
+		shared actual String operator() => "+";
+	}
 }
 
 shared class SubstractionConfig(
@@ -226,11 +211,8 @@ shared class Substraction extends BinaryOperandExercise {
 	
 	shared actual String id() => left.string + "-" + right.string;
 	
-	shared actual Display display(Page page) => SubstractionDisplay(page, this);
+	shared actual class Display(Page page) extends super.Display(page) {
+		shared actual String operator() => "-";
+	}
 }
 
-shared class SubstractionDisplay(Page page, Substraction exercise) extends BinaryOperandDisplay<Substraction>(page, exercise) {
-	
-	shared actual String operator() => "-";
-	
-}
