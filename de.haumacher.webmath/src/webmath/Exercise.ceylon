@@ -4,6 +4,11 @@ import widget {
 	IntegerField,
 	TagOutput
 }
+import ceylon.collection {
+
+	HashSet,
+	MutableSet
+}
 
 shared class TypeConfig(
 	shared variable ExerciseType type,
@@ -35,6 +40,19 @@ satisfies Factory<ExerciseType.Exercise>
 		assert (exists index = _probabilitySum.indexesWhere((sum) => rnd <= sum).first);
 		assert (exists config = _types[index]);
 		return config.type.create();
+	}
+	
+	shared ExerciseType.Exercise[] createExercises(Integer cnt) {
+		MutableSet<String> ids = HashSet<String>();
+		ExerciseType.Exercise createExerciseWithNewId() {
+			while (true) {
+				ExerciseType.Exercise task = create(); 
+				if (ids.add(task.id())) {
+					return task;
+				}
+			}
+		}
+		return [for (n in 0..cnt) createExerciseWithNewId()];
 	}
 	
 }

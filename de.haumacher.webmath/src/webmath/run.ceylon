@@ -1,22 +1,30 @@
 
 import dom {
-
 	Document,
 	Element
 }
-import widget {
 
+import widget {
 	Page
-}
-import ceylon.collection {
-	HashSet,
-	MutableSet
 }
 
 Document document() {
 	dynamic {
 		return window.document;
 	}
+}
+
+Page createPage(String? rootId) {
+	Element root;
+	if (exists rootId) {
+		assert (exists specifiedRoot = document().getElementById(rootId));
+		root = specifiedRoot;
+	} else {
+		root = document().documentElement;
+	}
+	value page = Page(document(), root);
+	page.init();
+	return page;
 }
 
 "Run the module `webmath`."
@@ -64,26 +72,9 @@ shared void run(String? rootId) {
 			}
 		]);
 		
-	MutableSet<String> ids = HashSet<String>();
-	ExerciseType.Exercise createTaskWithNewId() {
-		while (true) {
-			ExerciseType.Exercise task = config.create(); 
-			if (ids.add(task.id())) {
-				return task;
-			}
-		}
-	}
-	ExerciseType.Exercise[] tasks = [for (n in 0..60) createTaskWithNewId()];
+	value exercises = config.createExercises(60);
 	
-	Element root;
-	if (exists rootId) {
-		assert (exists specifiedRoot = document().getElementById(rootId));
-		root = specifiedRoot;
-	} else {
-		root = document().documentElement;
-	}
-	value page = Page(document(), root);
-	page.init();
+	value page = createPage(rootId);
 	
-	tasks.each((ExerciseType.Exercise task) {page.append(task.display(page));});
+	exercises.each((ExerciseType.Exercise exercise) {page.append(exercise.display(page));});
 }
