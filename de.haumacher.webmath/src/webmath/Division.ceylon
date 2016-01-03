@@ -3,7 +3,9 @@ import widget {
 	TagOutput,
 	IntegerField,
 	Property,
-	PropertyValue
+	PropertyValue,
+	PropertyListener,
+	PropertyObservable
 }
 
 shared class DivisionConfig(
@@ -82,19 +84,20 @@ shared class Division(
 			IntegerField remainderField = createRemainderField();
 			
 			shared actual void init() {
+				PropertyListener updateFields = object satisfies PropertyListener {
+					shared actual void notifyChanged(PropertyObservable observable, Property property, PropertyValue before, PropertyValue after) {
+						if (exists resultInput = resultField.intValue, exists remainderInput = remainderField.intValue) {
+							value resultOk = resultInput == result;
+							finalizeField(resultField, resultOk);
+							value remainderOk = remainderInput == remainder;
+							finalizeField(remainderField, remainderOk);
+							
+							finish(resultOk && remainderOk);
+						}
+					}
+				};
 				resultField.addPropertyListener(`IntegerField.intValue`, updateFields);
 				remainderField.addPropertyListener(`IntegerField.intValue`, updateFields);
-			}
-			
-			void updateFields(Object self, Property attr, PropertyValue before, PropertyValue after) { 
-				if (exists resultInput = resultField.intValue, exists remainderInput = remainderField.intValue) {
-					value resultOk = resultInput == result;
-					finalizeField(resultField, resultOk);
-					value remainderOk = remainderInput == remainder;
-					finalizeField(remainderField, remainderOk);
-					
-					finish(resultOk && remainderOk);
-				}
 			}
 			
 			shared actual void _displayContents(TagOutput output) {

@@ -9,7 +9,9 @@ import widget {
 	IntegerField,
 	TagOutput,
 	Property,
-	PropertyValue
+	PropertyValue,
+	PropertyListener,
+	PropertyObservable
 }
 
 shared class TypeConfig(
@@ -125,12 +127,15 @@ shared abstract class SingleResultType() extends ExerciseType() {
 			
 			IntegerField createResultField() {
 				value field = IntegerField(page);
-				field.addPropertyListener(`IntegerField.intValue`, (Object self, Property attr, PropertyValue before, PropertyValue after) {
-					if (exists after) {
-						assert (is IntegerField self);
-						finalizeField(self, after == result);
+				PropertyListener check = object satisfies PropertyListener {
+					shared actual void notifyChanged(PropertyObservable observable, Property property, PropertyValue before, PropertyValue after) {
+						if (exists after) {
+							assert (is IntegerField observable);
+							finalizeField(observable, after == result);
+						}
 					}
-				});
+				};
+				field.addPropertyListener(`IntegerField.intValue`, check);
 				return field;
 			}
 			

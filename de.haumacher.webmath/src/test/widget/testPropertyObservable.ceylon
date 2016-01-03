@@ -1,7 +1,8 @@
 import widget {
 	PropertyObservable,
 	PropertyValue,
-	Property
+	Property,
+	PropertyListener
 }
 
 class Foo() extends PropertyObservable() {
@@ -22,16 +23,30 @@ shared void testListenerCalled() {
 	variable Boolean handlerCalled = false;
 
     value foo = Foo();
-    void listener(Object self, Property attr, PropertyValue before, PropertyValue after) {
-        handlerCalled = true;
-    }
-    value subscription = foo.addPropertyListener(`Foo.x`, listener);
+    PropertyListener listener = object satisfies PropertyListener {
+    	shared actual void notifyChanged(PropertyObservable observable, Property property, PropertyValue before, PropertyValue after) {
+	        handlerCalled = true;
+    	}
+    };
+    PropertyListener listener2 = object satisfies PropertyListener {
+    	shared actual void notifyChanged(PropertyObservable observable, Property property, PropertyValue before, PropertyValue after) {
+	        assert (false);
+    	}
+    };
+    
+    assert (foo.addPropertyListener(`Foo.x`, listener2));
+    assert (foo.addPropertyListener(`Foo.x`, listener));
+    assert (!foo.addPropertyListener(`Foo.x`, listener));
+    assert (!foo.addPropertyListener(`Foo.x`, listener2));
+    assert (foo.removePropertyListener(`Foo.x`, listener2));
+    assert (!foo.removePropertyListener(`Foo.x`, listener2));
     
     assert (!handlerCalled);
     foo.x = 13;
     assert (handlerCalled);
 
-    subscription.cancel();
+    assert(foo.removePropertyListener(`Foo.x`, listener));
+    assert(!foo.removePropertyListener(`Foo.x`, listener));
     handlerCalled = false;
     
     foo.x = 42;
