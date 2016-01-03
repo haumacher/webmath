@@ -85,6 +85,10 @@ shared class TagOutput() {
 			case ('&') {
 				buffer.append("&amp;");
 			}
+			// FIXME: Workaround for unicode character output not working.
+			case ('*') {
+				buffer.append("&#x00B7;");
+			}
 			else {
 				buffer.appendCharacter(ch);
 			}
