@@ -3,13 +3,19 @@ import ceylon.collection {
 	ArrayList
 }
 
+interface State of elementContent | tagOpen | attributeOpen {}
+
+object elementContent satisfies State {}
+object tagOpen satisfies State {}
+object attributeOpen satisfies State {}
+	
 shared class TagOutput() {
+	
+	variable State state = elementContent;
 	
 	MutableList<String> openTags = ArrayList<String>();
 	
 	StringBuilder buffer = StringBuilder();
-	
-	variable Boolean tagOpen = false;
 	
 	shared actual String string => buffer.string;
 	
@@ -18,20 +24,40 @@ shared class TagOutput() {
 		buffer.append("<");
 		buffer.append(tagName);
 		openTags.add(tagName);
-		tagOpen = true;
+		
+		state = tagOpen;
+		return this;
+	}
+	
+	shared TagOutput openAttribute(String name) {
+		assert (state == tagOpen);
+
+		buffer.append(" ");
+		buffer.append(name);
+		buffer.append("=\"");
+		
+		state = attributeOpen;
+		return this;
+	}
+	
+	shared TagOutput closeAttribute() {
+		assert (state == attributeOpen);
+		
+		buffer.append("\"");
+		
+		state = tagOpen;
 		return this;
 	}
 	
 	shared TagOutput attribute(String name, String? val) {
-		assert (tagOpen);
+		assert (state == tagOpen);
 
 		if (exists val) {
-			buffer.append(" ");
-			buffer.append(name);
-			buffer.append("=\"");
-			quoteAttributeValue(val);
-			buffer.append("\"");
+			openAttribute(name);
+			attributeValue(val);
+			closeAttribute();
 		}
+		
 		return this;
 	}
 	
@@ -51,13 +77,14 @@ shared class TagOutput() {
 	}
 	
 	shared TagOutput endEmpty() {
-		assert (tagOpen);
+		assert (state == tagOpen);
 		
 		String? tagName = openTags.deleteLast();
 		assert (exists tagName);
 		
 		buffer.append("/>");
-		tagOpen = false;
+		
+		state = elementContent;
 		return this;
 	}
 	
@@ -67,9 +94,17 @@ shared class TagOutput() {
 	}
 	
 	void closeStart() {
-		if (tagOpen) {
+		switch (state) 
+		case (elementContent) {
+			// Ignore
+		}
+		case (tagOpen) {
 			buffer.append(">");
-			tagOpen = false;
+			state = elementContent;
+		}
+		case (attributeOpen) {
+			"Missing call to `closeAttribute`."
+			assert (false);
 		}
 	}
 	
@@ -95,7 +130,9 @@ shared class TagOutput() {
 		});
 	}
 	
-	void quoteAttributeValue(String val) {
+	shared TagOutput attributeValue(String val) {
+		assert (state == attributeOpen);
+		
 		val.each((ch) {
 			switch (ch)
 			case ('<') {
@@ -114,6 +151,8 @@ shared class TagOutput() {
 				buffer.appendCharacter(ch);
 			}
 		});
+		
+		return this;
 	}
 
 }
