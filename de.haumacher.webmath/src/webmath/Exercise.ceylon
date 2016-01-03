@@ -56,7 +56,7 @@ satisfies Factory<ExerciseType.Exercise>
 				}
 			}
 		}
-		return [for (n in 0..cnt) createExerciseWithNewId()];
+		return [for (n in 1..cnt) createExerciseWithNewId()];
 	}
 	
 }
@@ -125,21 +125,23 @@ shared abstract class SingleResultType() extends ExerciseType() {
 		
 		shared actual abstract default class Display(Page page) extends super.Display(page) {
 			
-			IntegerField createResultField() {
-				value field = IntegerField(page);
+			shared IntegerField resultField = IntegerField(page);
+			
+			shared actual void init() {
+				super.init();
+				
 				PropertyListener check = object satisfies PropertyListener {
 					shared actual void notifyChanged(PropertyObservable observable, Property property, PropertyValue before, PropertyValue after) {
 						if (exists after) {
 							assert (is IntegerField observable);
-							finalizeField(observable, after == result);
+							value successful = after == result;
+							finalizeField(observable, successful);
+							finish(successful);
 						}
 					}
 				};
-				field.addPropertyListener(`IntegerField.intValue`, check);
-				return field;
+				resultField.addPropertyListener(`IntegerField.intValue`, check);
 			}
-			
-			shared IntegerField resultField = createResultField();
 		}
 		
 	}

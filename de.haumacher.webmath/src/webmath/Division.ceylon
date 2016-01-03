@@ -84,6 +84,8 @@ shared class Division(
 			IntegerField remainderField = createRemainderField();
 			
 			shared actual void init() {
+				super.init();
+				
 				PropertyListener updateFields = object satisfies PropertyListener {
 					shared actual void notifyChanged(PropertyObservable observable, Property property, PropertyValue before, PropertyValue after) {
 						if (exists resultInput = resultField.intValue, exists remainderInput = remainderField.intValue) {
