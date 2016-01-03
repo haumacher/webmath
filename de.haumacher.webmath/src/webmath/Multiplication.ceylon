@@ -3,10 +3,12 @@ import widget {
 }
 
 shared class MultiplicationConfig(
-	Range operandRange = Range(1, 10)
+	Range operandRange = Range(1, 10),
+	Range resultRange = Range(1, 100)
 ) 
 {
 	shared Integer randomOperand() => operandRange.randomValue();
+	shared Boolean acceptResult(Integer x) => resultRange.contains(x);
 }
 
 shared class Multiplication(
@@ -23,6 +25,10 @@ shared class Multiplication(
 			Integer leftTry = config.randomOperand();
 			Integer rightTry = config.randomOperand();
 			Integer resultTry = leftTry * rightTry;
+			
+			if (!config.acceptResult(resultTry)) {
+				continue;
+			}
 			
 			left = leftTry;
 			right = rightTry;
