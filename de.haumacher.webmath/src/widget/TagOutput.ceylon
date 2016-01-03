@@ -88,9 +88,11 @@ shared class TagOutput() {
 		return this;
 	}
 	
-	shared void text(String text) {
+	shared TagOutput text(String text) {
 		closeStart();
 		quoteText(text);
+		
+		return this;
 	}
 	
 	void closeStart() {
