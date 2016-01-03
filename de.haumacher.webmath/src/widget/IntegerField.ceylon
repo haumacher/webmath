@@ -100,6 +100,10 @@ shared class IntegerField(Page page) extends Widget(page) {
 	
 	shared Integer? intValue => _current;
 	
+	assign intValue {
+		setValue(intValue);
+	}
+	
 	shared void setValue(Integer? newValue) {
 		// FIXME: Absurd construct with the meaning "if (newValue == _current) {return;}"
 		if (exists newValue) {
