@@ -6,7 +6,7 @@ import ceylon.collection {
 	ArrayList
 }
 
-shared abstract class Widget(shared Page page) satisfies Part {
+shared abstract class Widget(shared Page page) extends PropertyObservable() satisfies Part {
 	
 	shared actual String id = page.createId();
 	

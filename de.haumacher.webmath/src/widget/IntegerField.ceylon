@@ -13,8 +13,6 @@ shared class IntegerField(Page page) extends Widget(page) {
 	variable String currentRaw = "";
 	variable Integer? _current = null;
 	
-	shared variable Anything(IntegerField, Integer?)? onUpdate = null;
-	
 	shared actual void _display(TagOutput output) {
 		output.tag("input").attribute("id", id).attribute("value", currentRaw);
 		if (disabled) {
@@ -33,26 +31,23 @@ shared class IntegerField(Page page) extends Widget(page) {
 		invalidate();
 	}
 	
-	shared void notifyChange(Boolean fromUI) {
-		if (exists handler = onUpdate) {
-			handler(this, _current);
-		}
-		if (fromUI) {
-			invalidate();
-		}
+	shared void notifyValueChange(Integer? before, Integer? after) {
+		notifyChange(`IntegerField.intValue`, before, after);
 	}
 	
 	shared actual void onChange(Event event) {
 		Element? element = page.document.getElementById(id);
 		assert (exists element);
 		
+		Integer? before = _current;
 		currentRaw = toInput(element).\ivalue;
-		_current = parseInteger(currentRaw);
+		Integer? after = parseInteger(currentRaw);
+		_current = after;
 		
-		notifyChange(true);
+		notifyValueChange(before, after);
 	}
 	
-	shared Integer? getValue() => _current;
+	shared Integer? intValue => _current;
 	
 	shared void setValue(Integer? newValue) {
 		// FIXME: Absurd construct with the meaning "if (newValue == _current) {return;}"
@@ -68,10 +63,12 @@ shared class IntegerField(Page page) extends Widget(page) {
 			}
 		}
 		
+		Integer? before = _current;
 		_current = newValue;
 		currentRaw = if (exists newValue) then newValue.string else "";
 		
-		notifyChange(false);
+		notifyValueChange(before, newValue);
+		invalidate();
 	}
 	
 	shared void addClass(String newClass) {

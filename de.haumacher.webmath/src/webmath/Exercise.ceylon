@@ -1,13 +1,15 @@
+import ceylon.collection {
+	HashSet,
+	MutableSet
+}
+
 import widget {
 	Widget,
 	Page,
 	IntegerField,
-	TagOutput
-}
-import ceylon.collection {
-
-	HashSet,
-	MutableSet
+	TagOutput,
+	Property,
+	PropertyValue
 }
 
 shared class TypeConfig(
@@ -66,15 +68,40 @@ shared void finalizeField(IntegerField field, Boolean correct) {
 	}
 }
 
+shared abstract class State() of open | failed | success {}object open extends State() {}
+object success extends State() {}
+object failed extends State() {}
+
+shared interface ExerciseDisplay {
+	
+	shared formal State state;
+	
+}
+
 shared abstract class ExerciseType() {
 	
 	shared formal class Exercise() {
 		
 		shared formal String id();
 		
-		shared Display display(Page page) => Display(page);
+		shared Display display(Page page) { value display = Display(page); display.init(); return display; }
 			
-		shared formal class Display(Page page) extends Widget(page) {
+		shared formal class Display(Page page) extends Widget(page) satisfies ExerciseDisplay {
+			variable State _state = open;
+			
+			shared actual State state => _state;
+			
+			shared default void init() {
+				// Hook for sub-classes.
+			}
+			
+			shared void finish(Boolean successful) {
+				value before = _state;
+				value after = if (successful) then success else failed;
+				_state = after;
+				notifyChange(`ExerciseDisplay.state`, before, after);
+			}
+			
 			shared actual void _display(TagOutput output) {
 				output.tag("div").attribute("id", id).attribute("class", "exercise");
 				_displayContents(output);
@@ -98,11 +125,12 @@ shared abstract class SingleResultType() extends ExerciseType() {
 			
 			IntegerField createResultField() {
 				value field = IntegerField(page);
-				field.onUpdate = (IntegerField self, Integer? val) {
-					if (exists val) {
-						finalizeField(self, val == result);
+				field.addPropertyListener(`IntegerField.intValue`, (Object self, Property attr, PropertyValue before, PropertyValue after) {
+					if (exists after) {
+						assert (is IntegerField self);
+						finalizeField(self, after == result);
 					}
-				};
+				});
 				return field;
 			}
 			

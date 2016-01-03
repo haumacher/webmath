@@ -1,7 +1,9 @@
 import widget {
 	Page,
 	TagOutput,
-	IntegerField
+	IntegerField,
+	Property,
+	PropertyValue
 }
 
 shared class DivisionConfig(
@@ -63,7 +65,6 @@ shared class Division(
 			
 			IntegerField createResultField() {
 				value field = IntegerField(page);
-				field.onUpdate = updateFields;
 				return field;
 			}
 			
@@ -74,17 +75,25 @@ shared class Division(
 					// the result field depends on the remainder value being initialized.
 					field.setValue(0);
 				}
-				field.onUpdate = updateFields;
 				return field;
 			}
 			
 			IntegerField resultField = createResultField();
 			IntegerField remainderField = createRemainderField();
 			
-			void updateFields(IntegerField self, Integer? x) { 
-				if (exists resultInput = resultField.getValue(), exists remainderInput = remainderField.getValue()) {
-					finalizeField(resultField, resultInput == result);
-					finalizeField(remainderField, remainderInput == remainder);
+			shared actual void init() {
+				resultField.addPropertyListener(`IntegerField.intValue`, updateFields);
+				remainderField.addPropertyListener(`IntegerField.intValue`, updateFields);
+			}
+			
+			void updateFields(Object self, Property attr, PropertyValue before, PropertyValue after) { 
+				if (exists resultInput = resultField.intValue, exists remainderInput = remainderField.intValue) {
+					value resultOk = resultInput == result;
+					finalizeField(resultField, resultOk);
+					value remainderOk = remainderInput == remainder;
+					finalizeField(remainderField, remainderOk);
+					
+					finish(resultOk && remainderOk);
 				}
 			}
 			
