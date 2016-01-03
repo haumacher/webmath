@@ -6,7 +6,7 @@ import dom {
 
 shared class IntegerField(Page page) extends Widget(page) {
 	
-	shared variable DisplayMode _mode = enabled;
+	shared variable DisplayMode _mode = editing;
 	
 	variable String classes = "";
 	
@@ -14,12 +14,12 @@ shared class IntegerField(Page page) extends Widget(page) {
 	variable Integer? _current = null;
 	
 	
-	shared void enable() => mode = enabled;
+	shared void enable() => mode = editing;
 	shared void disable() => mode = disabled;
 	shared void displayOnly() => mode = displaying;
 	shared void hide() => mode = hidden;
 	
-	shared Boolean isEnabled() => mode == enabled;
+	shared Boolean isEnabled() => mode == editing;
 	shared Boolean isDisabled() => mode == disabled;
 	shared Boolean isImmutable() => mode == displaying;
 	shared Boolean isHidden() => mode == hidden;
@@ -36,7 +36,7 @@ shared class IntegerField(Page page) extends Widget(page) {
 	
 	shared actual void _display(TagOutput output) {
 		switch (mode) 
-		case (enabled | disabled) {
+		case (editing | disabled) {
 			output.tag("input").attribute("id", id).attribute("value", currentRaw);
 			if (isDisabled()) {
 				output.attribute("disabled", "disabled");
@@ -65,13 +65,13 @@ shared class IntegerField(Page page) extends Widget(page) {
 			output.attributeValue("mHidden");
 		}
 		case (displaying) {
-			output.attributeValue("mView");
+			output.attributeValue("mDisplay");
 		}
 		case (disabled) {
 			output.attributeValue("mDisabled");
 		}
-		case (enabled) {
-			output.attributeValue("mEnabled");
+		case (editing) {
+			output.attributeValue("mEdit");
 		}
 		
 		if (!classes.empty) {
