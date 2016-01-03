@@ -13,17 +13,11 @@
 	input {
 		width: 5ex;
 	}
-	input.resultOk {
+	span.resultOk {
 		color: #00CC00;
-		background-color: white;
-		border-style: solid;
-		border-color: white;
 	}
-	input.resultWrong {
+	span.resultWrong {
 		color: #DD0000;
-		background-color: white;
-		border-style: solid;
-		border-color: white;
 	}
 	div.exercises {
 		padding-left: 3ex;
@@ -34,6 +28,10 @@
 	}
 	div.exercise {
 		margin-top: 3px;
+		margin-bottom: 3px;
+		
+		/* Prevent line height from shrinking, when an input element is removed. */
+		line-height: 20pt;
 	}
 </style>
 <script type="text/javascript" src="scripts/require.js"></script>

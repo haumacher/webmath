@@ -62,7 +62,7 @@ satisfies Factory<ExerciseType.Exercise>
 }
 
 shared void finalizeField(IntegerField field, Boolean correct) {
-	field.disabled = true;
+	field.displayOnly();
 	if (correct) {
 		field.addClass("resultOk");
 	} else {

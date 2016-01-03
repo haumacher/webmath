@@ -6,29 +6,80 @@ import dom {
 
 shared class IntegerField(Page page) extends Widget(page) {
 	
-	shared variable Boolean _disabled = false;
+	shared variable DisplayMode _mode = enabled;
 	
 	variable String classes = "";
 	
 	variable String currentRaw = "";
 	variable Integer? _current = null;
 	
-	shared actual void _display(TagOutput output) {
-		output.tag("input").attribute("id", id).attribute("value", currentRaw);
-		if (disabled) {
-			output.attribute("disabled", "disabled");
+	
+	shared void enable() => mode = enabled;
+	shared void disable() => mode = disabled;
+	shared void displayOnly() => mode = displaying;
+	shared void hide() => mode = hidden;
+	
+	shared Boolean isEnabled() => mode == enabled;
+	shared Boolean isDisabled() => mode == disabled;
+	shared Boolean isImmutable() => mode == displaying;
+	shared Boolean isHidden() => mode == hidden;
+	
+	shared DisplayMode mode => _mode;
+	
+	assign mode {
+		if (mode == _mode) {
+			return;
 		}
-		if (!classes.empty) {
-			output.attribute("class", classes);
-		}
-		output.endEmpty();
+		_mode = mode;
+		invalidate();
 	}
 	
-	shared Boolean disabled => _disabled;
+	shared actual void _display(TagOutput output) {
+		switch (mode) 
+		case (enabled | disabled) {
+			output.tag("input").attribute("id", id).attribute("value", currentRaw);
+			if (isDisabled()) {
+				output.attribute("disabled", "disabled");
+			}
+			writeClasses(output);
+			output.endEmpty();
+		}
+		case (displaying|hidden) {
+			output.tag("span").attribute("id", id);
+			writeClasses(output);
+			if (!isHidden()) {
+				output.text(currentRaw);
+			}
+			output.end("span");
+		}
+	}
 	
-	assign disabled {
-		_disabled = disabled;
-		invalidate();
+	void writeClasses(TagOutput output) {
+		output.openAttribute("class");
+
+		output.attributeValue("wInt");
+		
+		output.attributeValue(" ");
+		switch (mode)
+		case (hidden) {
+			output.attributeValue("mHidden");
+		}
+		case (displaying) {
+			output.attributeValue("mView");
+		}
+		case (disabled) {
+			output.attributeValue("mDisabled");
+		}
+		case (enabled) {
+			output.attributeValue("mEnabled");
+		}
+		
+		if (!classes.empty) {
+			output.attributeValue(" ");
+			output.attributeValue(classes);
+		}
+		
+		output.closeAttribute();
 	}
 	
 	shared void notifyValueChange(Integer? before, Integer? after) {
