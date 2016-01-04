@@ -122,9 +122,9 @@ shared class TagOutput() {
 			case ('&') {
 				buffer.append("&amp;");
 			}
-			// FIXME: Workaround for unicode character output not working.
+			// FIXME: Workaround for direct unicode character output using '\{DOT OPERATOR}' is not working.
 			case ('*') {
-				buffer.append("&#x00B7;");
+				buffer.append("&#x22C5;");
 			}
 			else {
 				buffer.appendCharacter(ch);
