@@ -31,7 +31,7 @@ shared class IntegerField(Page page) extends Field(page) {
 		}
 	}
 	
-	shared void notifyValueChange(Integer? before, Integer? after) {
+	void notifyValueChange(Integer? before, Integer? after) {
 		notifyChange(`IntegerField.intValue`, before, after);
 	}
 	
@@ -47,7 +47,7 @@ shared class IntegerField(Page page) extends Field(page) {
 		notifyValueChange(before, after);
 	}
 	
-	shared Integer? intValue => _current;
+	observable shared Integer? intValue => _current;
 	
 	assign intValue {
 		setValue(intValue);
@@ -72,6 +72,8 @@ shared class IntegerField(Page page) extends Field(page) {
 		currentRaw = if (exists newValue) then newValue.string else "";
 		
 		notifyValueChange(before, newValue);
+		
+		// TODO: Use incremental update.
 		invalidate();
 	}
 	

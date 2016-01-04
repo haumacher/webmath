@@ -11,7 +11,8 @@ import widget {
 	Property,
 	PropertyValue,
 	PropertyListener,
-	PropertyObservable
+	PropertyObservable,
+	observable
 }
 
 shared class TypeConfig(
@@ -19,16 +20,13 @@ shared class TypeConfig(
 	shared variable Float probability = 1.0
 ) {}
 
-shared class ExerciseConfig
+shared class ExerciseConfig(Integer cnt, TypeConfig[] types)
 satisfies Factory<ExerciseType.Exercise> 
 {
-	TypeConfig[] _types;
 	Float[] _probabilitySum;
 	Float _probabilityTotal;
 	
-	shared new(TypeConfig[] types) {
-		_types = types;
-		
+	if (true) {
 		variable Float sum = 0.0;
 		Float sumOfPrefix(Float x) {
 			sum += x;
@@ -42,11 +40,11 @@ satisfies Factory<ExerciseType.Exercise>
 		Float rnd = randomUnit() * _probabilityTotal;
 		
 		assert (exists index = _probabilitySum.indexesWhere((sum) => rnd <= sum).first);
-		assert (exists config = _types[index]);
+		assert (exists config = types[index]);
 		return config.type.create();
 	}
 	
-	shared ExerciseType.Exercise[] createExercises(Integer cnt) {
+	shared ExerciseType.Exercise[] createExercises() {
 		MutableSet<String> ids = HashSet<String>();
 		ExerciseType.Exercise createExerciseWithNewId() {
 			while (true) {
@@ -171,10 +169,120 @@ shared abstract class BinaryOperandType() extends SingleResultType() {
 	}
 }
 
-class ExercisesDisplay(Page page, Widget[] widgets) extends Widget(page) {
+class ExercisesDisplay(Page page) extends Widget(page) {
+	
+	variable ExerciseConfig? _config = null;
+	
+	shared variable ExerciseType.Exercise[] exercises = [];
+	observable shared variable <ExerciseDisplay&Widget>[] exerciseDisplays = [];
+
+	void init() {
+		if (exists config = _config) {
+			exercises = config.createExercises();
+			exerciseDisplays = [for (x in exercises) x.display(page)];
+		}
+	}
+	
+	init();
+	
+	observable shared ExerciseConfig? config => _config;
+	
+	assign config {
+		PropertyValue before = _config;
+		_config = config;
+		notifyChange(`ExercisesDisplay.config`, before, config);
+		
+		update();
+	}
+	
+	void update() {
+		PropertyValue before = exerciseDisplays;
+		init();
+		notifyChange(`exerciseDisplays`, before, exerciseDisplays);
+		invalidate();
+	}
+	
 	shared actual void _display(TagOutput output) {
 		output.tag("div").attribute("id", id).attribute("class", "exercises");
-		widgets.each((x) => x.render(output));
+		exerciseDisplays.each((x) => x.render(output));
+		output.end("div");
+	}
+}
+
+class ResultDisplay(Page page, ExercisesDisplay display) extends Widget(page) {
+	Text time = Text(page, "");
+	IntegerField correctCntDisplay = IntegerField(page);
+	IntegerField wrongCntDisplay = IntegerField(page);
+	
+	correctCntDisplay.displayOnly();
+	correctCntDisplay.addClass("resultOk");
+	wrongCntDisplay.displayOnly();
+	wrongCntDisplay.addClass("resultWrong");
+	
+	variable Integer start = 0;
+	variable Integer correctCnt = 0;
+	variable Integer wrongCnt = 0;
+	
+	void init() {
+		time.text = "0 Minuten";
+		correctCnt = 0;
+		wrongCnt = 0;
+		start = system.milliseconds;
+		correctCntDisplay.intValue = correctCnt;
+		wrongCntDisplay.intValue = wrongCnt;
+	}
+	
+	PropertyListener counter = object satisfies PropertyListener {
+		shared actual void notifyChanged(PropertyObservable observable, Property property, PropertyValue before, PropertyValue after) {
+			Integer elapsed = (system.milliseconds - start) / 1000;
+			Integer minutes = elapsed / 60;
+			Integer seconds = elapsed % 60;
+			
+			value minutesString = if (minutes > 0) then minutes.string + " Minuten und " else "";
+			time.text = minutesString + seconds.string + " Sekunden";
+			
+			assert (is State after);
+			switch (after) 
+			case (open) {}
+			case (success) {
+				correctCnt++;
+				correctCntDisplay.intValue = correctCnt;
+			}
+			case (failed) {
+				wrongCnt++;
+				wrongCntDisplay.intValue = wrongCnt;
+			}
+		}
+	};
+	
+	class Update() satisfies PropertyListener {
+		shared void attach() {
+			init();
+			
+			display.exerciseDisplays.each((display) => display.addPropertyListener(`ExerciseDisplay.state`, counter));
+			display.addPropertyListener(`ExercisesDisplay.exerciseDisplays`, this);
+		}
+		
+		shared actual void notifyChanged(PropertyObservable observable, Property property, PropertyValue before, PropertyValue after) {
+			assert (is <ExerciseDisplay&Widget>[] before);
+			before.each((display) => display.removePropertyListener(`ExerciseDisplay.state`, counter));
+			
+			attach();
+		}
+	}
+	
+	Update update = Update();
+	update.attach();
+	
+	shared actual void _display(TagOutput output) {
+		output.tag("div").attribute("id", id);
+		output.text("Von " + display.exercises.size.string + " Aufgaben hast Du in ");
+		time.render(output);
+		output.text(" ");
+		correctCntDisplay.render(output);
+		output.text(" richtig und ");
+		wrongCntDisplay.render(output);
+		output.text(" falsch gelöst.");
 		output.end("div");
 	}
 }
